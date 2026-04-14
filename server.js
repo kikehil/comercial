@@ -24,51 +24,64 @@ const pool = mysql.createPool({
 
 // ─── COLUMN MAPPING (display ↔ db) ──────────────────────────────────────────
 const COL_MAP = {
-  'CR':                      'cr',
-  'Retek':                   'retek',
-  'Tienda':                  'tienda',
-  'Plaza':                   'plaza',
-  'Municipio':               'municipio',
-  'MS':                      'ms',
-  'Potencial':               'potencial',
-  'NSE':                     'nse',
-  'Iniciativa OHAP':         'iniciativa_ohap',
-  'FyV Nov':                 'fyv_nov',
-  'Asesor':                  'asesor',
-  'Anl. HOGAR':              'anl_hogar',
-  '# Sem de Visita':         'sem_visita',
-  'Hielera':                 'hielera',
-  'POP Exterior':            'pop_exterior',
-  'Exh de Volumen':          'exh_volumen',
-  'Prioridad Hogar':         'prioridad_hogar',
-  'Exh Marca Propia':        'exh_marca_propia',
-  'Vta MP 2025':             'vta_mp_2025',
-  'Exh FyV':                 'exh_fyv',
-  'Exh Huevo':               'exh_huevo',
-  'Alimentos Cong.':         'alimentos_cong',
-  'Salchikoxka':             'salchikoxka',
-  'Mascotero':               'mascotero',
-  'Potencial Mascotas':      'potencial_mascotas',
-  'Tortillero':              'tortillero',
-  'Jarceria':                'jarceria',
-  'Mundo del Postre':        'mundo_postre',
-  'Mundo Café Gde':          'mundo_cafe_gde',
-  'Mundo Café Ch':           'mundo_cafe_ch',
-  'Sitck de Café':           'sitck_cafe',
-  'Bascula Electrica':       'bascula_electrica',
-  'Farmacia':                'farmacia',
-  'Exh. Agua Familiar':      'exh_agua_familiar',
-  'Porta Garrafón Ext.':     'porta_garrafon_ext',
-  'Multi Nivel':             'multi_nivel',
-  'Exh DyR':                 'exh_dyr',
-  'Exh DyR 3 Frentes':       'exh_dyr_3_frentes',
-  'Comentario y Fecha':      'comentario_fecha'
+  'CR':                                    'cr',
+  'Retek':                                 'retek',
+  'Tienda':                                'tienda',
+  'Plaza':                                 'plaza',
+  'Municipio':                             'municipio',
+  'MS':                                    'ms',
+  'Potencial':                             'potencial',
+  'NSE':                                   'nse',
+  'Iniciativa OHAP':                       'iniciativa_ohap',
+  'FyV Nov':                               'fyv_nov',
+  'Asesor':                                'asesor',
+  'Anl. HOGAR':                            'anl_hogar',
+  '# Sem de Visita':                       'sem_visita',
+  'Hielera':                               'hielera',
+  'POP Exterior':                          'pop_exterior',
+  'Exh de Volumen':                        'exh_volumen',
+  'Prioridad Hogar':                       'prioridad_hogar',
+  'Exh Marca Propia':                      'exh_marca_propia',
+  'Vta MP 2025':                           'vta_mp_2025',
+  'Exh FyV':                               'exh_fyv',
+  'Exh Huevo':                             'exh_huevo',
+  'Alimentos Cong.':                       'alimentos_cong',
+  'Salchikoxka':                           'salchikoxka',
+  'Mascotero':                             'mascotero',
+  'Potencial Mascotas':                    'potencial_mascotas',
+  'Tortillero':                            'tortillero',
+  'Jarceria':                              'jarceria',
+  'Mundo del Postre':                      'mundo_postre',
+  'Mundo Café Gde':                        'mundo_cafe_gde',
+  'Mundo Café Ch':                         'mundo_cafe_ch',
+  'Sitck de Café':                         'sitck_cafe',
+  'Bascula Electrica':                     'bascula_electrica',
+  'Farmacia':                              'farmacia',
+  'Exh. Agua Familiar':                    'exh_agua_familiar',
+  'Porta Garrafón Ext.':                   'porta_garrafon_ext',
+  'Multi Nivel':                           'multi_nivel',
+  'Exh DyR':                               'exh_dyr',
+  'Exh DyR 3 Frentes':                     'exh_dyr_3_frentes',
+  'Comentario y Fecha':                    'comentario_fecha',
+  'Simbología':                            'simbologia'
 };
 const COL_MAP_REV = Object.fromEntries(Object.entries(COL_MAP).map(([k,v])=>[v,k]));
 
+// Normalize raw Excel header: strip \r\n, collapse spaces, trim
+function normKey(k) {
+  const n = k.replace(/[\r\n]+/g,' ').replace(/\s+/g,' ').trim();
+  // Special case: long Comentario column header → short key
+  if (n.startsWith('Comentario')) return 'Comentario y Fecha';
+  return n;
+}
+
 function toDb(obj) {
   const r = {};
-  for (const [k,v] of Object.entries(obj)) r[COL_MAP[k] || k] = v ?? '';
+  for (const [k, v] of Object.entries(obj)) {
+    const dbKey = COL_MAP[normKey(k)];
+    if (dbKey) r[dbKey] = v ?? '';
+    // silently skip truly unknown columns (no matching db column)
+  }
   return r;
 }
 function toDisplay(row) {
