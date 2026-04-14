@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OXXO · Consulta de Tiendas</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --red:#E31837; --red-dark:#B8122A; --yellow:#FFC72C; --yellow-dark:#E6A800;
+  --black:#111111; --dark:#1C1C1E; --gray:#8E8E93;
+  --light-gray:#F2F2F7; --mid-gray:#E5E5EA; --white:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:100vh;color:var(--black);}
+
+/* ── LOGIN ── */
+#loginScreen{
+  position:fixed;inset:0;z-index:1000;
+  background:linear-gradient(145deg,#1A0008 0%,#2D0010 40%,#1C1C1E 100%);
+  display:flex;align-items:center;justify-content:center;
+  animation:fadeIn .3s ease;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.login-box{
+  width:100%;max-width:400px;padding:0 24px;
+  animation:slideUp .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+.login-logo{display:flex;justify-content:center;margin-bottom:36px;}
+.login-card{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;padding:36px 32px;
+  backdrop-filter:blur(10px);
+}
+.login-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:22px;font-weight:700;color:white;
+  text-align:center;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;
+}
+.login-sub{color:rgba(255,255,255,.45);font-size:13px;text-align:center;margin-bottom:28px;}
+.login-label{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:6px;display:block;}
+.login-input{
+  width:100%;background:rgba(255,255,255,.08);
+  border:1.5px solid rgba(255,255,255,.15);
+  color:white;font-family:'DM Sans',sans-serif;font-size:15px;
+  padding:12px 16px;border-radius:12px;outline:none;margin-bottom:16px;
+  transition:border-color .2s;
+}
+.login-input::placeholder{color:rgba(255,255,255,.25);}
+.login-input:focus{border-color:var(--yellow);}
+.login-btn{
+  width:100%;background:var(--red);color:white;border:none;
+  border-radius:12px;padding:14px;font-family:'DM Sans',sans-serif;
+  font-size:15px;font-weight:700;cursor:pointer;
+  transition:background .2s,transform .1s;margin-top:4px;
+}
+.login-btn:hover{background:var(--red-dark);}
+.login-btn:active{transform:scale(.98);}
+.login-btn:disabled{opacity:.6;cursor:not-allowed;}
+.login-error{
+  background:rgba(227,24,55,.15);border:1px solid rgba(227,24,55,.4);
+  color:#FF6B7A;font-size:13px;padding:10px 14px;border-radius:10px;
+  margin-top:12px;text-align:center;display:none;
+}
+.login-footer{color:rgba(255,255,255,.2);font-size:11px;text-align:center;margin-top:24px;}
+
+/* ── MAIN APP (hidden until login) ── */
+#app{display:none;}
+
+/* ── HEADER ── */
+.header{
+  background:var(--red);position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 20px rgba(227,24,55,.4);
+}
+.header-inner{
+  max-width:1100px;margin:0 auto;
+  display:flex;align-items:center;gap:16px;padding:10px 24px;
+}
+.header-title{color:white;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.header-sub{color:rgba(255,255,255,.65);font-size:11px;text-transform:uppercase;letter-spacing:1px;}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.header-count{
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  color:white;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap;
+}
+.header-user{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(0,0,0,.2);border-radius:20px;padding:5px 12px 5px 5px;
+}
+.user-avatar{
+  width:26px;height:26px;background:var(--yellow);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--red);
+}
+.user-name{color:white;font-size:12px;font-weight:600;}
+.logout-btn{
+  background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;
+  font-size:18px;padding:0;line-height:1;transition:color .2s;
+}
+.logout-btn:hover{color:white;}
+
+/* ── SEARCH BAR ── */
+.search-bar{background:var(--dark);padding:14px 24px;}
+.search-inner{max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.autocomplete-container{position:relative;flex:1;min-width:240px;}
+.search-wrapper{position:relative;}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--gray);font-size:18px;pointer-events:none;}
+.search-input{
+  width:100%;background:#2C2C2E;border:1.5px solid transparent;color:white;
+  font-family:'DM Sans',sans-serif;font-size:16px;padding:12px 16px 12px 44px;
+  border-radius:12px;outline:none;transition:border-color .2s;
+}
+.search-input::placeholder{color:#636366;}
+.search-input:focus{border-color:var(--yellow);}
+.search-hint{color:#636366;font-size:12px;white-space:nowrap;}
+.import-btn{
+  background:var(--yellow);color:var(--black);border:none;border-radius:10px;
+  padding:11px 18px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;gap:8px;
+  transition:background .2s,transform .1s;white-space:nowrap;
+}
+.import-btn:hover{background:var(--yellow-dark);}
+.import-btn:active{transform:scale(.97);}
+#fileInput{display:none;}
+
+/* ── AUTOCOMPLETE ── */
+.autocomplete-list{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;
+  background:#2C2C2E;border:1.5px solid #3A3A3C;border-radius:12px;
+  overflow:hidden;z-index:200;max-height:280px;overflow-y:auto;
+}
+.autocomplete-item{
+  padding:11px 16px;cursor:pointer;color:white;font-size:14px;
+  display:flex;align-items:center;gap:10px;border-bottom:1px solid #3A3A3C;transition:background .1s;
+}
+.autocomplete-item:last-child{border-bottom:none;}
+.autocomplete-item:hover,.autocomplete-item.active{background:#3A3A3C;}
+.ac-cr{background:var(--red);color:white;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap;}
+.ac-name{color:#EBEBF5;flex:1;}
+.ac-plaza{color:#8E8E93;font-size:12px;white-space:nowrap;}
+
+/* ── MAIN ── */
+.main{max-width:1100px;margin:0 auto;padding:28px 24px 60px;}
+
+/* ── EMPTY ── */
+.empty-state{text-align:center;padding:80px 20px;}
+.empty-icon{font-size:64px;margin-bottom:16px;opacity:.4;}
+.empty-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:8px;}
+.empty-sub{color:var(--gray);font-size:15px;}
+
+/* ── STORE CARD ── */
+.store-card{background:white;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);animation:slideIn .25s ease-out;}
+@keyframes slideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CARD HEADER ── */
+.card-header{
+  background:linear-gradient(135deg,var(--red) 0%,var(--red-dark) 100%);
+  padding:22px 28px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;
+}
+.store-cr{background:var(--yellow);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:1px;padding:3px 10px;border-radius:6px;display:inline-block;margin-bottom:8px;text-transform:uppercase;}
+.store-name{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:white;line-height:1;text-transform:uppercase;margin-bottom:6px;}
+.store-location{color:rgba(255,255,255,.75);font-size:13px;}
+.card-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.btn{display:flex;align-items:center;gap:6px;padding:9px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .18s;}
+.btn-edit{background:rgba(255,255,255,.2);color:white;border:1.5px solid rgba(255,255,255,.4);}
+.btn-edit:hover{background:rgba(255,255,255,.3);}
+.btn-save{background:var(--yellow);color:var(--black);}
+.btn-save:hover{background:var(--yellow-dark);}
+.btn-cancel{background:rgba(255,255,255,.1);color:white;border:1.5px solid rgba(255,255,255,.2);}
+.btn-cancel:hover{background:rgba(255,255,255,.2);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ── TABS ── */
+.tab-bar{
+  background:white;border-bottom:2px solid var(--mid-gray);
+  display:flex;overflow-x:auto;scrollbar-width:none;
+}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{
+  flex-shrink:0;display:flex;align-items:center;gap:6px;padding:13px 20px;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--gray);
+  border:none;background:transparent;cursor:pointer;
+  border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s;white-space:nowrap;
+}
+.tab-btn:hover{color:var(--red);}
+.tab-btn.active{color:var(--red);border-bottom-color:var(--red);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* ── META PILLS ── */
+.meta-pills{display:flex;gap:8px;flex-wrap:wrap;padding:12px 28px;background:#FFF8F9;border-bottom:1px solid var(--mid-gray);}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+.pill-ms{background:#FFE5E8;color:var(--red);}
+.pill-pot{background:#FFF3D6;color:#8B6000;}
+.pill-nse{background:#E8F5E9;color:#1B5E20;}
+.pill-asesor{background:#E3F2FD;color:#0D47A1;}
+.pill-ohap{background:#F3E5F5;color:#4A148C;}
+
+/* ── CARD BODY ── */
+.card-body{padding:22px 28px;}
+.fields-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.fields-grid.wide{grid-template-columns:1fr;}
+.field{background:var(--light-gray);border-radius:10px;padding:10px 14px;border:1.5px solid transparent;transition:border-color .15s;}
+.field.edit-mode{border-color:var(--mid-gray);background:white;}
+.field.edit-mode:focus-within{border-color:var(--red);}
+.field-label{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gray);margin-bottom:4px;}
+.field-value{font-size:15px;font-weight:500;color:var(--black);word-break:break-word;min-height:22px;}
+.field-value.empty{color:#C7C7CC;font-style:italic;font-size:13px;}
+.field input,.field select,.field textarea{width:100%;border:none;outline:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--black);padding:0;}
+.field textarea{resize:vertical;min-height:60px;line-height:1.5;}
+.field select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238E8E93' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 4px center;padding-right:20px;}
+.status-chip{display:inline-flex;align-items:center;padding:2px 10px;border-radius:6px;font-size:13px;font-weight:600;}
+.chip-ok{background:#E8F5E9;color:#2E7D32;}
+.chip-revisar{background:#FFF3E0;color:#E65100;}
+.chip-aplica{background:#E3F2FD;color:#1565C0;}
+
+/* ── RESULTS LIST ── */
+.results-list{display:flex;flex-direction:column;gap:10px;}
+.result-row{background:white;border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;border:2px solid transparent;transition:all .15s;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+.result-row:hover{border-color:var(--red);transform:translateX(4px);}
+.result-cr{background:var(--red);color:white;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;padding:4px 12px;border-radius:8px;min-width:80px;text-align:center;}
+.result-name{font-weight:600;font-size:16px;flex:1;}
+.result-location{color:var(--gray);font-size:13px;}
+.result-arrow{color:var(--red);font-size:20px;}
+
+/* ── NO RESULT ── */
+.no-result{text-align:center;padding:60px 20px;background:white;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.06);}
+.no-result-icon{font-size:48px;margin-bottom:14px;}
+.no-result-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:6px;}
+.no-result-sub{color:var(--gray);font-size:14px;}
+
+/* ── LOADING SPINNER ── */
+.spinner{display:inline-block;width:20px;height:20px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-bar{
+  position:fixed;top:0;left:0;height:3px;background:var(--yellow);
+  z-index:9999;width:0;transition:width .3s;border-radius:0 2px 2px 0;
+}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:28px;right:28px;background:var(--dark);color:white;
+  padding:14px 22px;border-radius:14px;font-size:14px;font-weight:500;
+  display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.25);
+  z-index:999;transform:translateY(80px);opacity:0;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* ── AUTOCOMPLETE SCROLLBAR ── */
+.autocomplete-list::-webkit-scrollbar{width:6px;}
+.autocomplete-list::-webkit-scrollbar-track{background:#1C1C1E;}
+.autocomplete-list::-webkit-scrollbar-thumb{background:#3A3A3C;border-radius:3px;}
+
+@media(max-width:600px){
+  .header-inner{padding:10px 16px;}
+  .main{padding:16px 14px 50px;}
+  .card-body{padding:16px 14px;}
+  .meta-pills{padding:10px 14px;}
+  .card-header{padding:16px 14px;}
+  .fields-grid{grid-template-columns:1fr 1fr;}
+  .store-name{font-size:24px;}
+  .login-card{padding:28px 20px;}
+}
+</style>
+</head>
+<body>
+<div class="loading-bar" id="loadingBar"></div>
+
+<!-- ══════════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <!-- OXXO SVG Logo -->
+      <svg width="140" height="56" viewBox="0 0 140 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="140" height="56" rx="6" fill="#E31837"/>
+        <text x="70" y="43" text-anchor="middle"
+              font-family="'Barlow Condensed', Arial Black, sans-serif"
+              font-weight="900" font-size="42" letter-spacing="2" fill="#FFC72C">OXXO</text>
+        <rect x="0" y="49" width="140" height="7" rx="0" fill="#FFC72C" opacity=".9"/>
+      </svg>
+    </div>
+    <div class="login-card">
+      <div class="login-title">Acceso al Sistema</div>
+      <div class="login-sub">Gestión Comercial · Exhibidores y Módulos</div>
+      <label class="login-label">Usuario</label>
+      <input class="login-input" type="text" id="loginUser" placeholder="usuario" autocomplete="username"/>
+      <label class="login-label">Contraseña</label>
+      <input class="login-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"/>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">Iniciar sesión</button>
+      <div class="login-error" id="loginError"></div>
+    </div>
+    <div class="login-footer">OXXO Comercial © 2025 · Uso interno</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════════ -->
+<div id="app">
+  <div class="header">
+    <div class="header-inner">
+      <!-- OXXO Logo pequeño en header -->
+      <svg width="64" height="26" viewBox="0 0 64 26" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+        <rect width="64" height="26" rx="3" fill="rgba(0,0,0,0.25)"/>
+        <text x="32" y="20" text-anchor="middle"
+              font-family="'Barlow Condensed', Arial Black, sans-serif"
+              font-weight="900" font-size="19" letter-spacing="1" fill="#FFC72C">OXXO</text>
+        <rect x="0" y="22.5" width="64" height="3.5" fill="#FFC72C" opacity=".8"/>
+      </svg>
+      <div>
+        <div class="header-title">Consulta de Tiendas</div>
+        <div class="header-sub">Sistema de Gestión · Exhibidores y Módulos</div>
+      </div>
+      <div class="header-right">
+        <div class="header-count" id="storeCount">Cargando...</div>
+        <div class="header-user">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <span class="user-name" id="userName">–</span>
+          <button class="logout-btn" onclick="doLogout()" title="Cerrar sesión">⏻</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <div class="search-inner">
+      <div class="autocomplete-container">
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="searchInput"
+                 placeholder="Buscar por CR (50TUI) o nombre de tienda..."
+                 autocomplete="off"/>
+        </div>
+        <div class="autocomplete-list" id="autocompleteList" style="display:none"></div>
+      </div>
+      <span class="search-hint">Sin MAF ni TAM</span>
+      <label class="import-btn">
+        📂 Importar Excel
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv"/>
+      </label>
+    </div>
+  </div>
+
+  <div class="main" id="mainContent">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">🏪</div>
+      <div class="empty-title">Busca una tienda</div>
+      <div class="empty-sub">Escribe el CR o nombre para consultar · Importa Excel para actualizar la base de datos</div>
+    </div>
+    <div id="resultsArea"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toastIcon">✅</span>
+  <span id="toastMsg">Listo</span>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────
+let token = sessionStorage.getItem('oxxo_token') || null;
+let currentUser = null;
+
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  const errEl = document.getElementById('loginError');
+  if (!username || !password) { showLoginError('Ingresa usuario y contraseña'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Entrando...';
+  errEl.style.display = 'none';
+  try {
+    const res = await fetch('/api/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { showLoginError(data.error || 'Error al iniciar sesión'); return; }
+    token = data.token;
+    currentUser = data;
+    sessionStorage.setItem('oxxo_token', token);
+    showApp();
+  } catch {
+    showLoginError('No se pudo conectar al servidor');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Iniciar sesión';
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  // Parse username from token if needed
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    currentUser = payload;
+    document.getElementById('userName').textContent = payload.nombre || payload.username;
+    document.getElementById('userAvatar').textContent = (payload.nombre || payload.username || '?')[0].toUpperCase();
+  } catch {}
+  loadCount();
+}
+
+function doLogout() {
+  sessionStorage.removeItem('oxxo_token');
+  token = null;
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// Auto-login if token exists
+if (token) showApp();
+
+// Enter on login
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('loginPass').focus(); });
+
+async function loadCount() {
+  try {
+    const res = await apiFetch('/api/count');
+    const { total } = await res.json();
+    document.getElementById('storeCount').textContent = `${total.toLocaleString()} tiendas`;
+  } catch { document.getElementById('storeCount').textContent = ''; }
+}
+
+// ─────────────────────────────────────────────
+// API HELPER
+// ─────────────────────────────────────────────
+function apiFetch(url, opts={}) {
+  return fetch(url, {
+    ...opts,
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json', ...(opts.headers||{}) }
+  }).then(res => {
+    if (res.status === 401) { doLogout(); throw new Error('Sesión expirada'); }
+    return res;
+  });
+}
+
+// ─────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────
+let editingCR = null;
+let editBuffer = {};
+let activeTab = 'identificacion';
+
+const OPCIONES = {
+  "POP Exterior": ["Porta Lonas","Porta Poster","Porta Pendon","Bastidor","Pendon","Vinil Ventanal","Sin Espacio","En Propuesta","Revisar"],
+  "Exh Marca Propia": ["1/2 Gondola","GP 120X170","1/2 Isla","Isla","DyR","GP 91X40","Revisar"],
+  "Exh de Volumen": ["VL_1_S/P","VL_2_S/P","VL_3_S/P","VL_1_C/P","VL_2_C/P","VL_3_C/P","VN_1_S/P","VN_2_S/P","VN_3_S/P","VN_1_C/P","VN_2_C/P","Revisar","Enviar Exh","VN_3_C/P","VL_4_C/P"],
+  "Exh FyV": ["Isla","CA_1","Isla - Cubo","GP 120X170","GP 91X40","1/2 Gondola","1/2 Isla","CC_1","CA_2","CC_2","Revisar"],
+  "Salchikoxka": ["MD10_Charola","MD10_Varios","MD10_Solera","MD10_Ganchos","MD10_Copete","MD10_Ok","MD10_Canastilla","MD14_Charola","MD14_Ganchos","MD14_Varios","MD14_Solera","MD14_Copete","MD14_Ok","En Proceso","Revisar","MD14_Canastilla"],
+  "Mascotero": ["1M","2M","3M","4M","Glad","Revisar","Glad - Nutradog"],
+  "Tortillero": ["Local","Coca","Revisar"],
+  "Farmacia": ["CheckOut","Revisar","GC"],
+  "OTROS": ["Aplica","OK","Revisar","No Aplica"]
+};
+const OTROS_COLS = ["Hielera","Exh Huevo","Alimentos Cong.","Jarceria","Mundo del Postre","Mundo Café Gde","Mundo Café Ch","Sitck de Café","Bascula Electrica","Exh. Agua Familiar","Porta Garrafón Ext.","Multi Nivel","Exh DyR","Exh DyR 3 Frentes"];
+
+const SECTIONS = [
+  { id:"identificacion", title:"Identificación",      icon:"🏷️", cols:["CR","Retek","Tienda","Plaza","Municipio"] },
+  { id:"segmentacion",   title:"Segmentación",         icon:"📊", cols:["MS","Potencial","NSE","Iniciativa OHAP","Asesor","Anl. HOGAR","# Sem de Visita","FyV Nov","Prioridad Hogar"] },
+  { id:"exhibidores",    title:"Exhibidores",           icon:"🛒", cols:["Hielera","POP Exterior","Exh de Volumen","Exh Marca Propia","Vta MP 2025","Exh FyV","Exh Huevo"] },
+  { id:"modulos",        title:"Módulos Especiales",    icon:"📦", cols:["Alimentos Cong.","Salchikoxka","Mascotero","Potencial Mascotas","Tortillero","Jarceria","Mundo del Postre"] },
+  { id:"equipamiento",   title:"Café & Equipamiento",   icon:"☕", cols:["Mundo Café Gde","Mundo Café Ch","Sitck de Café","Bascula Electrica","Farmacia","Exh. Agua Familiar","Porta Garrafón Ext.","Multi Nivel","Exh DyR","Exh DyR 3 Frentes"] },
+  { id:"notas",          title:"Comentarios",           icon:"📝", cols:["Comentario y Fecha"] }
+];
+
+function getOptions(col) {
+  if (OPCIONES[col]) return OPCIONES[col];
+  if (OTROS_COLS.includes(col)) return OPCIONES["OTROS"];
+  return null;
+}
+
+// ─────────────────────────────────────────────
+// SEARCH & AUTOCOMPLETE
+// ─────────────────────────────────────────────
+const searchInput = document.getElementById('searchInput');
+const acList = document.getElementById('autocompleteList');
+let acIndex = -1;
+let searchTimer = null;
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim();
+  acIndex = -1;
+  clearTimeout(searchTimer);
+  if (q.length < 2) { acList.style.display = 'none'; return; }
+  searchTimer = setTimeout(() => fetchSuggestions(q), 250);
+});
+
+async function fetchSuggestions(q) {
+  try {
+    const res = await apiFetch(`/api/stores?q=${encodeURIComponent(q)}`);
+    const results = await res.json();
+    if (!results.length) { acList.style.display = 'none'; return; }
+    acList.innerHTML = results.map(s => `
+      <div class="autocomplete-item" data-cr="${s.CR}" onclick="selectStore('${s.CR}')">
+        <span class="ac-cr">${s.CR}</span>
+        <span class="ac-name">${cleanName(s.Tienda)}</span>
+        <span class="ac-plaza">${s.Municipio || ''}</span>
+      </div>`).join('');
+    acList.style.display = 'block';
+  } catch {}
+}
+
+searchInput.addEventListener('keydown', e => {
+  const items = acList.querySelectorAll('.autocomplete-item');
+  if (e.key === 'ArrowDown') { acIndex = Math.min(acIndex+1, items.length-1); highlightAC(items); }
+  else if (e.key === 'ArrowUp') { acIndex = Math.max(acIndex-1, 0); highlightAC(items); }
+  else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (acIndex >= 0 && items[acIndex]) selectStore(items[acIndex].dataset.cr);
+    else triggerSearch();
+  } else if (e.key === 'Escape') acList.style.display = 'none';
+});
+
+function highlightAC(items) {
+  items.forEach((el,i) => el.classList.toggle('active', i===acIndex));
+  if (acIndex >= 0) items[acIndex].scrollIntoView({ block:'nearest' });
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.autocomplete-container')) acList.style.display = 'none';
+});
+
+async function triggerSearch() {
+  acList.style.display = 'none';
+  const q = searchInput.value.trim();
+  if (q.length < 2) return;
+  setLoading(true);
+  try {
+    const res = await apiFetch(`/api/stores?q=${encodeURIComponent(q)}`);
+    const results = await res.json();
+    renderResults(results);
+  } catch(e) {
+    showToast('❌', e.message || 'Error en búsqueda');
+  } finally { setLoading(false); }
+}
+
+async function selectStore(cr) {
+  acList.style.display = 'none';
+  searchInput.value = cr;
+  setLoading(true);
+  editingCR = null; editBuffer = {}; activeTab = SECTIONS[0].id;
+  try {
+    const res = await apiFetch(`/api/stores/${cr}`);
+    const store = await res.json();
+    renderStoreCard(store);
+  } catch(e) {
+    showToast('❌', 'No se pudo cargar la tienda');
+  } finally { setLoading(false); }
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function cleanName(name) {
+  return (name||'').replace(/\s+(MAF|TAM|FRA|MRY)\s*$/i,'').trim();
+}
+
+function renderResults(results) {
+  const area = document.getElementById('resultsArea');
+  document.getElementById('emptyState').style.display = 'none';
+  editingCR = null;
+  if (!results.length) {
+    area.innerHTML = `<div class="no-result"><div class="no-result-icon">🔍</div><div class="no-result-title">Sin resultados</div><div class="no-result-sub">No se encontró ninguna tienda con ese criterio</div></div>`;
+    return;
+  }
+  if (results.length === 1) { renderStoreCard(results[0]); return; }
+  area.innerHTML = `
+    <div style="margin-bottom:14px;color:var(--gray);font-size:14px;font-weight:600;">${results.length} tiendas — selecciona una</div>
+    <div class="results-list">
+      ${results.map(s=>`
+        <div class="result-row" onclick="selectStore('${s.CR}')">
+          <span class="result-cr">${s.CR}</span>
+          <span class="result-name">${cleanName(s.Tienda)}</span>
+          <span class="result-location">📍 ${s.Municipio||''}</span>
+          <span class="result-arrow">→</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderStoreCard(store, keepTab) {
+  const area = document.getElementById('resultsArea');
+  document.getElementById('emptyState').style.display = 'none';
+  const isEditing = editingCR === store.CR;
+  const data = isEditing ? editBuffer : store;
+  if (!keepTab) activeTab = SECTIONS[0].id;
+
+  const metaPills = [
+    store.MS && `<span class="pill pill-ms">📌 MS: ${store.MS}</span>`,
+    store.Potencial && `<span class="pill pill-pot">⭐ ${store.Potencial}</span>`,
+    store.NSE && `<span class="pill pill-nse">🏘️ NSE: ${store.NSE}</span>`,
+    store.Asesor && `<span class="pill pill-asesor">👤 ${store.Asesor}</span>`,
+    store['Iniciativa OHAP'] && `<span class="pill pill-ohap">📋 OHAP: ${store['Iniciativa OHAP']}</span>`,
+  ].filter(Boolean).join('');
+
+  const actionsHtml = isEditing
+    ? `<button class="btn btn-save" id="btnSave" onclick="saveEdit('${store.CR}')">💾 Guardar</button>
+       <button class="btn btn-cancel" onclick="cancelEdit('${store.CR}')">✕ Cancelar</button>`
+    : `<button class="btn btn-edit" onclick="startEdit('${store.CR}')">✏️ Editar</button>`;
+
+  const tabBarHtml = SECTIONS.map(sec=>`
+    <button class="tab-btn ${activeTab===sec.id?'active':''}"
+            onclick="switchTab('${store.CR}','${sec.id}')">
+      <span>${sec.icon}</span>${sec.title}
+    </button>`).join('');
+
+  const panesHtml = SECTIONS.map(sec=>{
+    const fieldsHtml = sec.cols.map(col=>{
+      const val = String(data[col]||'').trim();
+      const opts = getOptions(col);
+      const isEmpty = !val;
+      if (isEditing && col!=='CR') {
+        if (opts) {
+          return `<div class="field edit-mode"><div class="field-label">${col}</div>
+            <select onchange="updateEdit('${escA(col)}',this.value)">
+              <option value="">—</option>
+              ${opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}
+            </select></div>`;
+        }
+        if (col==='Comentario y Fecha') {
+          return `<div class="field edit-mode" style="grid-column:1/-1"><div class="field-label">${col}</div>
+            <textarea oninput="updateEdit('${escA(col)}',this.value)">${val}</textarea></div>`;
+        }
+        return `<div class="field edit-mode"><div class="field-label">${col}</div>
+          <input type="text" value="${escA(val)}" oninput="updateEdit('${escA(col)}',this.value)"/></div>`;
+      }
+      return `<div class="field"><div class="field-label">${col}</div>
+        <div class="field-value ${isEmpty?'empty':''}">${isEmpty?'—':chip(val)}</div></div>`;
+    }).join('');
+    return `<div class="tab-pane ${activeTab===sec.id?'active':''}" data-tab="${sec.id}">
+      <div class="fields-grid ${sec.id==='notas'?'wide':''}">${fieldsHtml}</div>
+    </div>`;
+  }).join('');
+
+  area.innerHTML = `
+    <div class="store-card">
+      <div class="card-header">
+        <div>
+          <div class="store-cr">${store.CR} · Retek ${store.Retek||'—'}</div>
+          <div class="store-name">${cleanName(store.Tienda)}</div>
+          <div class="store-location">📍 ${store.Municipio||''} · ${store.Plaza||''}</div>
+        </div>
+        <div class="card-actions">${actionsHtml}</div>
+      </div>
+      ${metaPills?`<div class="meta-pills">${metaPills}</div>`:''}
+      <div class="tab-bar">${tabBarHtml}</div>
+      <div class="card-body">${panesHtml}</div>
+    </div>`;
+
+  area.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function chip(val) {
+  const v = val.toLowerCase();
+  if (v==='ok') return `<span class="status-chip chip-ok">✓ OK</span>`;
+  if (v==='revisar') return `<span class="status-chip chip-revisar">⚠ Revisar</span>`;
+  if (v==='aplica') return `<span class="status-chip chip-aplica">● Aplica</span>`;
+  return val;
+}
+
+function escA(s) { return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+function switchTab(cr, tabId) {
+  activeTab = tabId;
+  document.querySelectorAll('.tab-btn').forEach((btn,i) => btn.classList.toggle('active', SECTIONS[i]?.id===tabId));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.dataset.tab===tabId));
+}
+
+// ─────────────────────────────────────────────
+// EDIT
+// ─────────────────────────────────────────────
+function startEdit(cr) {
+  // Get current data from rendered card
+  const store = getRenderedStore(cr);
+  if (!store) return;
+  editingCR = cr;
+  editBuffer = { ...store };
+  renderStoreCard(store, true);
+}
+
+function getRenderedStore(cr) {
+  // Re-fetch from server or reconstruct from DOM
+  // We'll re-fetch to ensure fresh data
+  apiFetch(`/api/stores/${cr}`).then(r=>r.json()).then(s=>{
+    editBuffer = { ...s };
+    renderStoreCard(s, true);
+    editingCR = cr;
+  });
+  return null;
+}
+
+// Override startEdit to use async fetch
+function startEdit(cr) {
+  editingCR = cr;
+  editBuffer = {};
+  setLoading(true);
+  apiFetch(`/api/stores/${cr}`)
+    .then(r=>r.json())
+    .then(s=>{ editBuffer={...s}; renderStoreCard(s,true); })
+    .catch(()=>showToast('❌','Error al cargar datos'))
+    .finally(()=>setLoading(false));
+}
+
+function updateEdit(col, val) { editBuffer[col] = val; }
+
+async function saveEdit(cr) {
+  const btn = document.getElementById('btnSave');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Guardando...'; }
+  try {
+    const res = await apiFetch(`/api/stores/${cr}`, {
+      method:'PUT', body: JSON.stringify(editBuffer)
+    });
+    if (!res.ok) throw new Error((await res.json()).error);
+    editingCR = null;
+    const updated = { ...editBuffer };
+    editBuffer = {};
+    renderStoreCard(updated, true);
+    showToast('✅', 'Cambios guardados en la base de datos');
+  } catch(e) {
+    showToast('❌', e.message || 'Error al guardar');
+    if (btn) { btn.disabled=false; btn.innerHTML='💾 Guardar'; }
+  }
+}
+
+function cancelEdit(cr) {
+  const data = { ...editBuffer };
+  editingCR = null; editBuffer = {};
+  renderStoreCard(data, true);
+}
+
+// ─────────────────────────────────────────────
+// IMPORT EXCEL
+// ─────────────────────────────────────────────
+const FIELD_MAP = {
+  'Exh de Volumen ':'Exh de Volumen','FyV\nNov':'FyV Nov',
+  'Exh DyR\n3 Frentes':'Exh DyR 3 Frentes',
+  ' Comentario y Fecha última Actualización':'Comentario y Fecha'
+};
+
+document.getElementById('fileInput').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const wb = XLSX.read(ev.target.result, { type:'array' });
+      const sheetName = wb.SheetNames.find(n=>n.toUpperCase().includes('BDD')) || wb.SheetNames[0];
+      const raw = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval:'' });
+      const stores = raw.map(row => {
+        const n = {};
+        for (const [k,v] of Object.entries(row)) {
+          const key = FIELD_MAP[k] || k;
+          n[key] = v!=null ? String(v).trim() : '';
+        }
+        return n;
+      }).filter(r => r.CR?.trim());
+      if (!stores.length) { showToast('⚠️','No se encontraron datos en la hoja BDD'); return; }
+      showToast('⏳', `Subiendo ${stores.length} tiendas...`);
+      const res = await apiFetch('/api/stores/import', {
+        method:'POST', body: JSON.stringify({ stores })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      showToast('✅', `${data.count} tiendas importadas correctamente`);
+      loadCount();
+    } catch(e) {
+      showToast('❌', e.message || 'Error al importar');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value = '';
+});
+
+// ─────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────
+function setLoading(on) {
+  const bar = document.getElementById('loadingBar');
+  bar.style.width = on ? '60%' : '0';
+  if (!on) setTimeout(()=>bar.style.width='0',300);
+}
+
+let toastTimer;
+function showToast(icon, msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastIcon').textContent = icon;
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
