@@ -340,6 +340,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
 .badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;}
 .badge-admin{background:var(--yellow);color:var(--black);}
 .badge-edit{background:#d1f7e8;color:#0b5d3f;}
+.admin-input{
+  width:100%;background:var(--light-gray);
+  border:1.5px solid var(--mid-gray);
+  color:var(--black);font-family:'DM Sans',sans-serif;font-size:15px;
+  padding:12px 16px;border-radius:12px;outline:none;margin-bottom:16px;
+  transition:border-color .2s;
+}
+.admin-input::placeholder{color:var(--gray);}
+.admin-input:focus{border-color:var(--red);}
 
 /* ── DECORATIVE ICONS ── */
 .deco-icons{display:flex;gap:16px;justify-content:center;margin-top:24px;opacity:0.7;}
@@ -440,16 +449,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
         <hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/>
         <h4 style="margin-bottom:12px">Crear Nuevo Usuario</h4>
         <div class="fields-grid">
-          <input type="text" id="nuUser" placeholder="Usuario" class="login-input" style="color:black;background:#eee;"/>
-          <input type="password" id="nuPass" placeholder="Contraseña" class="login-input" style="color:black;background:#eee;"/>
-          <input type="text" id="nuName" placeholder="Nombre completo" class="login-input" style="color:black;background:#eee;"/>
-          <select id="nuRole" class="login-input" style="color:black;background:#eee;">
+          <input type="text" id="nuUser" placeholder="Usuario" class="admin-input" />
+          <input type="password" id="nuPass" placeholder="Contraseña" class="admin-input" />
+          <input type="text" id="nuName" placeholder="Nombre completo" class="admin-input" />
+          <select id="nuRole" class="admin-input">
             <option value="editor">Editor (Puede editar tiendas)</option>
             <option value="viewer">Viewer (Solo lectura)</option>
             <option value="admin">Admin (Total)</option>
           </select>
         </div>
-        <button class="login-btn" onclick="createUser()">+ Crear Usuario</button>
+        <button class="login-btn" style="width:100%" onclick="createUser()">+ Crear Usuario</button>
       </div>
     </div>
   </div>
