@@ -103,6 +103,11 @@ function auth(req, res, next) {
   }
 }
 
+function adminOnly(req, res, next) {
+  if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Permiso denegado' });
+  next();
+}
+
 // ─── ROUTES ──────────────────────────────────────────────────────────────────
 
 // POST /api/login
@@ -172,6 +177,92 @@ app.put('/api/stores/:cr', auth, async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error al guardar' });
+  }
+});
+
+// POST /api/stores — agregar nueva tienda (FAB)
+app.post('/api/stores', auth, async (req, res) => {
+  try {
+    const data = toDb(req.body);
+    if (!data.cr) return res.status(400).json({ error: 'El CR es obligatorio' });
+    data.updated_by = req.user.username;
+    
+    const cols = Object.keys(data).map(k => `\`${k}\``).join(', ');
+    const ph   = Object.keys(data).map(() => '?').join(', ');
+    
+    await pool.query(`INSERT INTO stores (${cols}) VALUES (${ph})`, Object.values(data));
+    res.json({ ok:true });
+  } catch (e) {
+    if (e.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'El CR ya existe' });
+    console.error(e);
+    res.status(500).json({ error: 'Error al crear tienda' });
+  }
+});
+
+// ─── ADMIN USERS ─────────────────────────────────────────────────────────────
+
+// GET /api/admin/users
+app.get('/api/admin/users', auth, adminOnly, async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT id, username, nombre, role, can_edit, created_at FROM users ORDER BY username');
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+});
+
+// POST /api/admin/users
+app.post('/api/admin/users', auth, adminOnly, async (req, res) => {
+  try {
+    const { username, password, nombre, role, can_edit } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Faltan datos' });
+    const hash = await bcrypt.hash(password, 10);
+    await pool.query(
+      'INSERT INTO users (username, password_hash, nombre, role, can_edit) VALUES (?, ?, ?, ?, ?)',
+      [username.trim(), hash, nombre, role || 'editor', can_edit ? 1 : 0]
+    );
+    res.json({ ok:true });
+  } catch (e) {
+    if (e.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'El usuario ya existe' });
+    res.status(500).json({ error: 'Error al crear usuario' });
+  }
+});
+
+// PUT /api/admin/users/:id
+app.put('/api/admin/users/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const { nombre, role, can_edit } = req.body;
+    await pool.query(
+      'UPDATE users SET nombre = ?, role = ?, can_edit = ? WHERE id = ?',
+      [nombre, role, can_edit ? 1 : 0, req.params.id]
+    );
+    res.json({ ok:true });
+  } catch (e) {
+    res.status(500).json({ error: 'Error al actualizar usuario' });
+  }
+});
+
+// PUT /api/admin/users/:id/password
+app.put('/api/admin/users/:id/password', auth, adminOnly, async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ error: 'Contraseña vacía' });
+    const hash = await bcrypt.hash(password, 10);
+    await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [hash, req.params.id]);
+    res.json({ ok:true });
+  } catch (e) {
+    res.status(500).json({ error: 'Error al cambiar contraseña' });
+  }
+});
+
+// DELETE /api/admin/users/:id
+app.delete('/api/admin/users/:id', auth, adminOnly, async (req, res) => {
+  try {
+    if (parseInt(req.params.id) === req.user.id) return res.status(400).json({ error: 'No puedes eliminarte a ti mismo' });
+    await pool.query('DELETE FROM users WHERE id = ?', [req.params.id]);
+    res.json({ ok:true });
+  } catch (e) {
+    res.status(500).json({ error: 'Error al eliminar usuario' });
   }
 });
 

@@ -109,13 +109,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
 .search-wrapper{position:relative;}
 .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--gray);font-size:18px;pointer-events:none;}
 .search-input{
-  width:100%;background:#2C2C2E;border:1.5px solid transparent;color:white;
-  font-family:'DM Sans',sans-serif;font-size:16px;padding:12px 16px 12px 44px;
-  border-radius:12px;outline:none;transition:border-color .2s;
+  width:100%;background:rgba(0,0,0,0.15);border:1.5px solid transparent;color:white;
+  font-family:'DM Sans',sans-serif;font-size:15px;padding:10px 16px 10px 40px;
+  border-radius:10px;outline:none;transition:border-color .2s;
 }
-.search-input::placeholder{color:#636366;}
-.search-input:focus{border-color:var(--yellow);}
-.search-hint{color:#636366;font-size:12px;white-space:nowrap;}
+.search-input::placeholder{color:rgba(255,255,255,0.5);}
+.search-input:focus{border-color:var(--yellow);background:rgba(0,0,0,0.25);}
+.search-hint{color:rgba(255,255,255,0.4);font-size:11px;margin-left:8px;display:none;}
 .import-btn{
   background:var(--yellow);color:var(--black);border:none;border-radius:10px;
   padding:11px 18px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
@@ -128,9 +128,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
 
 /* ── AUTOCOMPLETE ── */
 .autocomplete-list{
-  position:absolute;top:calc(100% + 4px);left:0;right:0;
+  position:absolute;top:calc(100% + 8px);left:0;right:0;
   background:#2C2C2E;border:1.5px solid #3A3A3C;border-radius:12px;
   overflow:hidden;z-index:200;max-height:280px;overflow-y:auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 .autocomplete-item{
   padding:11px 16px;cursor:pointer;color:white;font-size:14px;
@@ -139,8 +140,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
 .autocomplete-item:last-child{border-bottom:none;}
 .autocomplete-item:hover,.autocomplete-item.active{background:#3A3A3C;}
 .ac-cr{background:var(--red);color:white;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap;}
-.ac-name{color:#EBEBF5;flex:1;}
+.ac-name{color:#EBEBF5;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .ac-plaza{color:#8E8E93;font-size:12px;white-space:nowrap;}
+
+/* ── FAB ── */
+.fab{
+  position:fixed;bottom:28px;right:90px;
+  width:56px;height:56px;border-radius:50%;
+  background:var(--red);color:white;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(227,24,55,0.4);
+  cursor:pointer;z-index:500;transition:transform .2s,background .2s;
+  border:none;font-size:28px;
+}
+.fab:hover{transform:scale(1.1);background:var(--red-dark);}
+.fab:active{transform:scale(0.95);}
 
 /* ── MAIN ── */
 .main{max-width:1100px;margin:0 auto;padding:28px 24px 60px;}
@@ -265,6 +279,67 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
   .store-name{font-size:24px;}
   .login-card{padding:28px 20px;}
 }
+
+/* ── MISSION ICONS ── */
+.mission-icon{width:22px;height:22px;vertical-align:middle;margin-right:8px;border-radius:4px;}
+.pill-ms{background:white !important;color:var(--red) !important;border:1.5px solid var(--red);display:inline-flex;align-items:center;}
+
+/* ── ADMIN MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;z-index:2000;
+}
+.modal-content{
+  background:white;width:100%;max-width:650px;border-radius:24px;
+  overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  max-height:90vh;display:flex;flex-direction:column;
+}
+.modal-header{padding:24px;background:var(--red);color:white;display:flex;justify-content:space-between;align-items:center;}
+.modal-body{padding:24px;overflow-y:auto;flex:1;}
+.user-list-item{
+  display:flex;align-items:center;padding:14px 18px;border-radius:14px;
+  background:#f8f9fa;margin-bottom:10px;gap:14px;border:1px solid #eee;
+}
+.user-info{flex:1;}
+.user-badges{display:flex;gap:6px;margin-top:4px;}
+.badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;text-transform:uppercase;}
+.badge-admin{background:var(--yellow);color:var(--black);}
+.badge-edit{background:#d1f7e8;color:#0b5d3f;}
+
+/* ── STITCH BRANDING ── */
+.stitch-mascot{
+  position:fixed;bottom:-5px;left:10px;width:120px;height:auto;
+  z-index:1001;pointer-events:none;filter:drop-shadow(0 0 10px rgba(0,0,0,0.2));
+  opacity:0.8;transition:opacity 0.3s;
+}
+#app:hover .stitch-mascot{opacity:1;}
+.brand-cyan{color:#00BFFF;text-shadow:0 0 5px rgba(0,191,255,0.2);}
+
+/* ── MISSION ICONS ── */
+.mission-icon{width:20px;height:20px;vertical-align:middle;margin-right:6px;}
+.pill-ms{background:#E0F7FA !important;color:#00838F !important;border:1.5px solid #4DD0E1;}
+
+/* ── ADMIN MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;z-index:2000;
+}
+.modal-content{
+  background:white;width:100%;max-width:600px;border-radius:24px;
+  overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  max-height:90vh;display:flex;flex-direction:column;
+}
+.modal-header{padding:20px 24px;background:var(--red);color:white;display:flex;justify-content:space-between;align-items:center;}
+.modal-body{padding:24px;overflow-y:auto;flex:1;}
+.user-list-item{
+  display:flex;align-items:center;padding:12px 16px;border-radius:12px;
+  background:var(--light-gray);margin-bottom:8px;gap:12px;
+}
+.user-info{flex:1;}
+.user-badges{display:flex;gap:4px;margin-top:2px;}
+.badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;}
+.badge-admin{background:var(--yellow);color:var(--black);}
+.badge-edit{background:#DEF7EC;color:#03543F;}
 </style>
 </head>
 <body>
@@ -277,13 +352,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
   <div class="login-box">
     <div class="login-logo">
       <!-- OXXO SVG Logo -->
-      <svg width="140" height="56" viewBox="0 0 140 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="140" height="56" rx="6" fill="#E31837"/>
-        <text x="70" y="43" text-anchor="middle"
-              font-family="'Barlow Condensed', Arial Black, sans-serif"
-              font-weight="900" font-size="42" letter-spacing="2" fill="#FFC72C">OXXO</text>
-        <rect x="0" y="49" width="140" height="7" rx="0" fill="#FFC72C" opacity=".9"/>
-      </svg>
+      <img src="images/logotm.png" alt="OXXO Logo" style="height:80px; width:auto; display:block;"/>
     </div>
     <div class="login-card">
       <div class="login-title">Acceso al Sistema</div>
@@ -306,19 +375,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
   <div class="header">
     <div class="header-inner">
       <!-- OXXO Logo pequeño en header -->
-      <svg width="64" height="26" viewBox="0 0 64 26" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
-        <rect width="64" height="26" rx="3" fill="rgba(0,0,0,0.25)"/>
-        <text x="32" y="20" text-anchor="middle"
-              font-family="'Barlow Condensed', Arial Black, sans-serif"
-              font-weight="900" font-size="19" letter-spacing="1" fill="#FFC72C">OXXO</text>
-        <rect x="0" y="22.5" width="64" height="3.5" fill="#FFC72C" opacity=".8"/>
-      </svg>
-      <div>
+      <img src="images/logotm.png" alt="OXXO Logo" style="height:32px; width:auto; flex-shrink:0;"/>
+      <div style="flex-shrink:0;">
         <div class="header-title">Consulta de Tiendas</div>
         <div class="header-sub">Sistema de Gestión · Exhibidores y Módulos</div>
       </div>
+      
+      <div class="autocomplete-container" style="max-width:500px; margin:0 20px;">
+        <div class="search-wrapper">
+          <span class="search-icon" style="color:rgba(255,255,255,0.5)">🔍</span>
+          <input type="text" class="search-input" id="searchInput"
+                 placeholder="Busca por CR o nombre..."
+                 autocomplete="off"/>
+        </div>
+        <div class="autocomplete-list" id="autocompleteList" style="display:none"></div>
+      </div>
       <div class="header-right">
         <div class="header-count" id="storeCount">Cargando...</div>
+        <button id="adminBtn" class="import-btn" style="background:rgba(0,0,0,0.2);color:white;display:none;" onclick="openAdminModal()">⚙️ Usuarios</button>
         <div class="header-user">
           <div class="user-avatar" id="userAvatar">?</div>
           <span class="user-name" id="userName">–</span>
@@ -328,24 +402,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
     </div>
   </div>
 
-  <div class="search-bar">
-    <div class="search-inner">
-      <div class="autocomplete-container">
-        <div class="search-wrapper">
-          <span class="search-icon">🔍</span>
-          <input type="text" class="search-input" id="searchInput"
-                 placeholder="Buscar por CR (50TUI) o nombre de tienda..."
-                 autocomplete="off"/>
-        </div>
-        <div class="autocomplete-list" id="autocompleteList" style="display:none"></div>
-      </div>
-      <span class="search-hint">Sin MAF ni TAM</span>
-      <label class="import-btn">
-        📂 Importar Excel
-        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv"/>
-      </label>
-    </div>
-  </div>
 
   <div class="main" id="mainContent">
     <div class="empty-state" id="emptyState">
@@ -355,6 +411,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
     </div>
     <div id="resultsArea"></div>
   </div>
+  
+  <button class="fab" id="fabAdd" onclick="openNewStoreModal()" title="Agregar nueva tienda">+</button>
+</div>
+  
+  <!-- Modals -->
+  <div class="modal-overlay" id="adminModal" onclick="if(event.target===this)closeModal('adminModal')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="font-family:'Barlow Condensed'">Gestión de Usuarios</h3>
+        <button class="logout-btn" onclick="closeModal('adminModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="userList"></div>
+        <hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/>
+        <h4 style="margin-bottom:12px">Crear Nuevo Usuario</h4>
+        <div class="fields-grid">
+          <input type="text" id="nuUser" placeholder="Usuario" class="login-input" style="color:black;background:#eee;"/>
+          <input type="password" id="nuPass" placeholder="Contraseña" class="login-input" style="color:black;background:#eee;"/>
+          <input type="text" id="nuName" placeholder="Nombre completo" class="login-input" style="color:black;background:#eee;"/>
+          <select id="nuRole" class="login-input" style="color:black;background:#eee;">
+            <option value="editor">Editor (Puede editar tiendas)</option>
+            <option value="viewer">Viewer (Solo lectura)</option>
+            <option value="admin">Admin (Total)</option>
+          </select>
+        </div>
+        <button class="login-btn" onclick="createUser()">+ Crear Usuario</button>
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 
 <div class="toast" id="toast">
@@ -412,6 +498,7 @@ function showApp() {
     currentUser = payload;
     document.getElementById('userName').textContent = payload.nombre || payload.username;
     document.getElementById('userAvatar').textContent = (payload.nombre || payload.username || '?')[0].toUpperCase();
+    if (payload.role === 'admin') document.getElementById('adminBtn').style.display = 'flex';
   } catch {}
   loadCount();
 }
@@ -465,11 +552,19 @@ const OPCIONES = {
   "Exh Marca Propia": ["1/2 Gondola","GP 120X170","1/2 Isla","Isla","DyR","GP 91X40","Revisar"],
   "Exh de Volumen": ["VL_1_S/P","VL_2_S/P","VL_3_S/P","VL_1_C/P","VL_2_C/P","VL_3_C/P","VN_1_S/P","VN_2_S/P","VN_3_S/P","VN_1_C/P","VN_2_C/P","Revisar","Enviar Exh","VN_3_C/P","VL_4_C/P"],
   "Exh FyV": ["Isla","CA_1","Isla - Cubo","GP 120X170","GP 91X40","1/2 Gondola","1/2 Isla","CC_1","CA_2","CC_2","Revisar"],
-  "Salchikoxka": ["MD10_Charola","MD10_Varios","MD10_Solera","MD10_Ganchos","MD10_Copete","MD10_Ok","MD10_Canastilla","MD14_Charola","MD14_Ganchos","MD14_Varios","MD14_Solera","MD14_Copete","MD14_Ok","En Proceso","Revisar","MD14_Canastilla"],
+  "Salchikoxka": ["MD10_Charola","MD10_Varios","MD10_Solera","MD10_Ganchos","MD10_Copete","MD10_Ok","MD10_Canastilla","MD14_Charola","MD14_Ganchos","MD14_Varios","MD14_Solera","MD14_Ok","En Proceso","Revisar","MD14_Canastilla"],
   "Mascotero": ["1M","2M","3M","4M","Glad","Revisar","Glad - Nutradog"],
   "Tortillero": ["Local","Coca","Revisar"],
   "Farmacia": ["CheckOut","Revisar","GC"],
+  "MS": ["Parada Técnica", "Oficinistas", "Hogar Reunión", "Barrio Competido", "Clásico"],
   "OTROS": ["Aplica","OK","Revisar","No Aplica"]
+};
+const MISSION_ICONS = {
+  "Parada Técnica": "images/iconos/3.png",
+  "Oficinistas": "images/iconos/4.png",
+  "Hogar Reunión": "images/iconos/5.png",
+  "Barrio Competido": "images/iconos/6.png",
+  "Clásico": "images/iconos/7.png"
 };
 const OTROS_COLS = ["Hielera","Exh Huevo","Alimentos Cong.","Jarceria","Mundo del Postre","Mundo Café Gde","Mundo Café Ch","Sitck de Café","Bascula Electrica","Exh. Agua Familiar","Porta Garrafón Ext.","Multi Nivel","Exh DyR","Exh DyR 3 Frentes"];
 
@@ -604,7 +699,7 @@ function renderStoreCard(store, keepTab) {
   if (!keepTab) activeTab = SECTIONS[0].id;
 
   const metaPills = [
-    store.MS && `<span class="pill pill-ms">📌 MS: ${store.MS}</span>`,
+    store.MS && `<span class="pill pill-ms">${MISSION_ICONS[store.MS]?`<img src="${MISSION_ICONS[store.MS]}" class="mission-icon"/>`:''} ${store.MS}</span>`,
     store.Potencial && `<span class="pill pill-pot">⭐ ${store.Potencial}</span>`,
     store.NSE && `<span class="pill pill-nse">🏘️ NSE: ${store.NSE}</span>`,
     store.Asesor && `<span class="pill pill-asesor">👤 ${store.Asesor}</span>`,
@@ -797,6 +892,97 @@ function setLoading(on) {
   bar.style.width = on ? '60%' : '0';
   if (!on) setTimeout(()=>bar.style.width='0',300);
 }
+
+// ─── MODALS ───
+function openAdminModal() {
+  document.getElementById('adminModal').style.display = 'flex';
+  loadUsers();
+}
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+async function loadUsers() {
+  const area = document.getElementById('userList');
+  area.innerHTML = '<span class="spinner"></span> Cargando...';
+  try {
+    const res = await apiFetch('/api/admin/users');
+    const users = await res.json();
+    area.innerHTML = users.map(u => `
+      <div class="user-list-item">
+        <div class="user-info">
+          <div style="font-weight:700">@${u.username} <span style="font-weight:400;color:#666;font-size:12px">(${u.nombre})</span></div>
+          <div class="user-badges">
+            <span class="badge ${u.role==='admin'?'badge-admin':'badge-edit'}">${u.role}</span>
+            ${u.can_edit ? '<span class="badge badge-edit">Editor</span>' : '<span class="badge" style="background:#eee">Solo-lectura</span>'}
+          </div>
+        </div>
+        <button class="btn btn-cancel" style="padding:4px 8px;border-color:#ccc;color:#666" onclick="resetUserPass(${u.id})">🔑 Pass</button>
+        <button class="btn btn-cancel" style="padding:4px 8px;border-color:#FBCACA;color:#B8122A" onclick="deleteUser(${u.id})">🗑️</button>
+      </div>`).join('');
+  } catch(e) { area.innerHTML = 'Error al cargar usuarios'; }
+}
+
+async function createUser() {
+  const username = document.getElementById('nuUser').value.trim();
+  const password = document.getElementById('nuPass').value;
+  const nombre = document.getElementById('nuName').value;
+  const role = document.getElementById('nuRole').value;
+  if(!username || !password) return alert('Usuario y clave obligatorios');
+  try {
+    const res = await apiFetch('/api/admin/users', { method:'POST', body:JSON.stringify({username,password,nombre,role,can_edit:true}) });
+    if(!res.ok) throw new Error((await res.json()).error);
+    showToast('✅', 'Usuario creado');
+    loadUsers();
+    document.getElementById('nuUser').value=''; document.getElementById('nuPass').value='';
+  } catch(e) { showToast('❌', e.message); }
+}
+
+async function resetUserPass(id) {
+  const pass = prompt('Nueva contraseña:');
+  if(!pass) return;
+  try {
+    const res = await apiFetch(`/api/admin/users/${id}/password`, { method:'PUT', body:JSON.stringify({password:pass}) });
+    if(res.ok) showToast('✅', 'Contraseña actualizada');
+  } catch { showToast('❌', 'Error'); }
+}
+
+async function deleteUser(id) {
+  if(!confirm('¿Eliminar usuario?')) return;
+  try {
+    const res = await apiFetch(`/api/admin/users/${id}`, { method:'DELETE' });
+    if(res.ok) { showToast('✅', 'Usuario eliminado'); loadUsers(); }
+    else throw new Error((await res.json()).error);
+  } catch(e) { showToast('❌', e.message); }
+}
+
+function openNewStoreModal() {
+  editingCR = "NEW";
+  editBuffer = { CR: "", Tienda: "", Plaza: "", Municipio: "NUEVA" };
+  renderStoreCard(editBuffer, false);
+  // Modificar saveEdit para manejar NEW
+}
+
+// Sobrescribir saveEdit original para manejar creación
+const originalSaveEdit = saveEdit;
+saveEdit = async function(cr) {
+  if (cr === "NEW") {
+    const btn = document.getElementById('btnSave');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Creando...'; }
+    try {
+      const res = await apiFetch('/api/stores', { method:'POST', body: JSON.stringify(editBuffer) });
+      if(!res.ok) throw new Error((await res.json()).error);
+      const newCr = editBuffer.CR;
+      editingCR = null;
+      loadCount();
+      selectStore(newCr);
+      showToast('✅', 'Tienda creada exitosamente');
+    } catch(e) {
+      showToast('❌', e.message || 'Error al crear');
+      if (btn) { btn.disabled=false; btn.innerHTML='💾 Guardar'; }
+    }
+  } else {
+    await originalSaveEdit(cr);
+  }
+};
 
 let toastTimer;
 function showToast(icon, msg) {
