@@ -139,11 +139,17 @@ app.post('/api/login', async (req, res) => {
     const valid = await bcrypt.compare(password, rows[0].password_hash);
     if (!valid) return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
     const token = jwt.sign(
-      { id: rows[0].id, username: rows[0].username, nombre: rows[0].nombre },
+      { 
+        id: rows[0].id, 
+        username: rows[0].username, 
+        nombre: rows[0].nombre,
+        role: rows[0].role,
+        can_edit: rows[0].can_edit
+      },
       JWT_SECRET,
       { expiresIn: '8h' }
     );
-    res.json({ token, username: rows[0].username, nombre: rows[0].nombre });
+    res.json({ token, username: rows[0].username, nombre: rows[0].nombre, role: rows[0].role, can_edit: rows[0].can_edit });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error del servidor' });
