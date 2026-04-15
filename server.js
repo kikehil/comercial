@@ -22,6 +22,25 @@ const pool = mysql.createPool({
   charset:         'utf8mb4'
 });
 
+// Auto-migration
+(async () => {
+  try {
+    const [cols] = await pool.query('SHOW COLUMNS FROM users');
+    const names = cols.map(c => c.Field);
+    if (!names.includes('role')) {
+      await pool.query("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'editor'");
+      console.log('Migration: Added role column');
+    }
+    if (!names.includes('can_edit')) {
+      await pool.query("ALTER TABLE users ADD COLUMN can_edit TINYINT(1) DEFAULT 1");
+      console.log('Migration: Added can_edit column');
+    }
+    await pool.query("UPDATE users SET role = 'admin', can_edit = 1 WHERE username = 'admin'");
+  } catch (err) {
+    console.error('Migration error:', err.message);
+  }
+})();
+
 // ─── COLUMN MAPPING (display ↔ db) ──────────────────────────────────────────
 const COL_MAP = {
   'CR':                                    'cr',

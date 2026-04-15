@@ -339,7 +339,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
 .user-badges{display:flex;gap:4px;margin-top:2px;}
 .badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;}
 .badge-admin{background:var(--yellow);color:var(--black);}
-.badge-edit{background:#DEF7EC;color:#03543F;}
+.badge-edit{background:#d1f7e8;color:#0b5d3f;}
+
+/* ── DECORATIVE ICONS ── */
+.deco-icons{display:flex;gap:16px;justify-content:center;margin-top:24px;opacity:0.7;}
+.deco-icon{width:36px;height:36px;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.1));transition:transform 0.3s;}
+.deco-icon:hover{transform:scale(1.2) rotate(5deg);opacity:1;}
 </style>
 </head>
 <body>
@@ -363,6 +368,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
       <input class="login-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"/>
       <button class="login-btn" id="loginBtn" onclick="doLogin()">Iniciar sesión</button>
       <div class="login-error" id="loginError"></div>
+      
+      <div class="deco-icons">
+        <img src="images/iconos/3.png" class="deco-icon" title="Misiones Comerciales"/>
+        <img src="images/iconos/4.png" class="deco-icon"/>
+        <img src="images/iconos/5.png" class="deco-icon"/>
+        <img src="images/iconos/6.png" class="deco-icon"/>
+        <img src="images/iconos/7.png" class="deco-icon"/>
+      </div>
     </div>
     <div class="login-footer">OXXO Comercial © 2025 · Uso interno</div>
   </div>
@@ -406,8 +419,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--light-gray);min-height:10
   <div class="main" id="mainContent">
     <div class="empty-state" id="emptyState">
       <div class="empty-icon">🏪</div>
-      <div class="empty-title">Busca una tienda</div>
+      <div class="empty-title">¡HOLA! BUSCA UNA TIENDA</div>
       <div class="empty-sub">Escribe el CR o nombre para consultar · Importa Excel para actualizar la base de datos</div>
+      
+      <div class="deco-icons" style="margin-top:48px; opacity:0.9; gap:32px;">
+        <img src="images/iconos/3.png" style="width:72px;height:72px;" class="deco-icon" title="Misiones Comerciales"/>
+        <img src="images/iconos/4.png" style="width:72px;height:72px;" class="deco-icon"/>
+        <img src="images/iconos/5.png" style="width:72px;height:72px;" class="deco-icon"/>
+        <img src="images/iconos/6.png" style="width:72px;height:72px;" class="deco-icon"/>
+        <img src="images/iconos/7.png" style="width:72px;height:72px;" class="deco-icon"/>
+      </div>
     </div>
     <div id="resultsArea"></div>
   </div>
